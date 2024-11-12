@@ -6,13 +6,13 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>3.3.5</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath/>
 	</parent>
 	<groupId>com.medici</groupId>
 	<artifactId>user-hub</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>Medic-User-Hub</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Medici User Mirco API Demo</description>
 
 	<properties>
 		<java.version>23</java.version>
@@ -61,6 +61,20 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
+		</dependency>
+
+		<!-- Redis support -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis</artifactId>
+		</dependency>
+
+		<!-- javax.servlet dependency for JWT Filter -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>4.0.1</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Testing -->

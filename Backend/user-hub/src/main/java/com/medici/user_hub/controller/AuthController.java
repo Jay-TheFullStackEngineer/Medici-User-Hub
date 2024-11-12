@@ -20,7 +20,7 @@ public class AuthController {
     private JwtService jwtService;
 
     @Autowired
-    private TokenBlacklistService tokenBlacklistService;
+    private TokenService tokenService;
 
     @Autowired
     private UserService userService;
@@ -58,10 +58,10 @@ public class AuthController {
     public ResponseEntity<String> logout(@RequestBody String accessToken) {
         try {
             // Get the expiration time of the token
-            long expiration = jwtService.getExpiration(accessToken);
+            long expiration = jwtService.getTokenExpiration(accessToken);
 
             // Blacklist the access token to prevent further use
-            tokenBlacklistService.blacklistToken(accessToken, expiration);
+            tokenService.blacklistToken(accessToken, expiration);
             return ResponseEntity.ok("Logged out successfully");
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to logout");

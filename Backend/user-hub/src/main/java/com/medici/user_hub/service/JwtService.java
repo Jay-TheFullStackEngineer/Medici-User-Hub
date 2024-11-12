@@ -3,6 +3,7 @@ package com.medici.user_hub.service;
 import com.medici.user_hub.model.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -61,5 +62,14 @@ public class JwtService {
                 .getBody()
                 .getExpiration();
         return expiration.before(new Date()); // Return true if the token is expired
+    }
+
+    // Get expiration time in milliseconds from the token
+    public long getTokenExpiration(String token) {
+        Claims claims = Jwts.parser()
+                .setSigningKey(jwtSecret)
+                .parseClaimsJws(token)
+                .getBody();
+        return claims.getExpiration().getTime(); // Return expiration time in milliseconds
     }
 }

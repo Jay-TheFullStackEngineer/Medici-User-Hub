@@ -37,7 +37,7 @@ public class UserService {
         // Save the user in the database with auto-generated ID
         userRepository.save(user);
         // Generate and return a JWT token for user authentication
-        return jwtService.generateToken(user);
+        return jwtService.generateAccessToken(user);
     }
 
     // Retrieve a user by their unique ID
@@ -80,4 +80,10 @@ public class UserService {
     public boolean isAdmin(User user) {
         return user.getRoles() != null && user.getRoles().contains(Role.ADMIN);
     }
+
+    // Add this method in UserService
+    public boolean validatePassword(String rawPassword, String encodedPassword) {
+        return passwordEncoder.matches(rawPassword, encodedPassword);
+    }
+
 }

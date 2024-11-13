@@ -1,5 +1,6 @@
 package com.medici.user_hub.controller;
 
+import com.medici.user_hub.handler.ResourceNotFoundException;
 import com.medici.user_hub.model.User;
 import com.medici.user_hub.service.JwtService;
 import com.medici.user_hub.service.TokenService;
@@ -8,13 +9,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-/**
- * Controller for handling authentication-related endpoints, including token refreshing and logout.
- */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     @Autowired
     private JwtService jwtService;
@@ -25,46 +27,84 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
-    /**
-     * Endpoint for refreshing the access token.
-     * @param refreshToken The refresh token provided by the client.
-     * @return A new access token if the refresh token is valid; 401 Unauthorized otherwise.
-     */
+    // Refresh access token for authenticated users
     @PostMapping("/refresh-token")
     public ResponseEntity<String> refreshAccessToken(@RequestBody String refreshToken) {
+        logger.info("AuthController - Request to refresh access token");
         try {
-            // Validate refresh token and extract user ID
             String userId = jwtService.validateTokenAndGetUserId(refreshToken);
             if (userId != null) {
-                // Retrieve user by ID
-                User user = userService.getUserById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-                // Generate a new access token for the user
+                User user = userService.getUserById(userId); // Throws ResourceNotFoundException if not found
                 String newAccessToken = jwtService.generateAccessToken(user);
-                return ResponseEntity.ok(newAccessToken); // Return new access token
+                logger.info("AuthController - Successfully refreshed access token for user ID: {}", userId);
+                return ResponseEntity.ok(newAccessToken);
+            } else {
+                logger.warn("AuthController - Invalid refresh token provided");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
-        } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
+        } catch (ResourceNotFoundException e) {
+            logger.error("AuthController - User not found during token refresh", e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("AuthController - Unexpected error during token refresh", e);
+            throw e;
         }
     }
 
-    /**
-     * Endpoint for logging out a user by blacklisting their access token.
-     * @param accessToken The access token to be blacklisted.
-     * @return A success message if logout is successful.
-     */
+    // Logout by blacklisting the access token
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestBody String accessToken) {
+        logger.info("AuthController - Request to logout user with token");
         try {
-            // Get the expiration time of the token
             long expiration = jwtService.getTokenExpiration(accessToken);
-
-            // Blacklist the access token to prevent further use
             tokenService.blacklistToken(accessToken, expiration);
+            logger.info("AuthController - Successfully logged out and blacklisted token");
             return ResponseEntity.ok("Logged out successfully");
-        } catch (Exception ex) {
+        } catch (Exception e) {
+            logger.error("AuthController - Failed to logout and blacklist token", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to logout");
+        }
+    }
+
+    // Retrieve the security question for a given email (publicly accessible)
+    @GetMapping("/security-question")
+    public ResponseEntity<String> getSecurityQuestion(@RequestParam String email) {
+        logger.info("AuthController - Request to retrieve security question for email: {}", email);
+        try {
+            String securityQuestion = userService.getSecurityQuestionByEmail(email); // Throws ResourceNotFoundException if email not found
+            logger.info("AuthController - Successfully retrieved security question for email: {}", email);
+            return ResponseEntity.ok(securityQuestion);
+        } catch (ResourceNotFoundException e) {
+            logger.error("AuthController - User not found with provided email: {}", email, e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("AuthController - Unexpected error retrieving security question for email: {}", email, e);
+            throw e;
+        }
+    }
+
+    // Validate security answer and reset password (publicly accessible)
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @RequestParam String email,
+            @RequestParam String answer,
+            @RequestParam String newPassword) {
+        logger.info("AuthController - Request to reset password for email: {}", email);
+        try {
+            boolean resetSuccessful = userService.verifySecurityAnswerAndResetPassword(email, answer, newPassword);
+            if (resetSuccessful) {
+                logger.info("AuthController - Password reset successfully for email: {}", email);
+                return ResponseEntity.ok("Password reset successful");
+            } else {
+                logger.warn("AuthController - Password reset failed for email: {}", email);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Password reset failed");
+            }
+        } catch (ResourceNotFoundException e) {
+            logger.error("AuthController - User not found for password reset with email: {}", email, e);
+            throw e;
+        } catch (Exception e) {
+            logger.error("AuthController - Unexpected error during password reset for email: {}", email, e);
+            throw e;
         }
     }
 }

@@ -2,6 +2,7 @@ package com.medici.user_hub.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -10,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true) // Updated annotation for method-level security
 public class SecurityConfig {
 
     @Bean
@@ -25,8 +27,8 @@ public class SecurityConfig {
 
                 // Authorize HTTP requests
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/users/register", "/api/users/login").permitAll()
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/users/register", "/api/users/login", "/health/**").permitAll() // Public endpoints
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN") // Admin access for /api/admin endpoints
                         .anyRequest().authenticated()
                 )
 

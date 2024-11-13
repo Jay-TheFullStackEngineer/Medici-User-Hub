@@ -1,0 +1,15 @@
+# Use OpenJDK 17 as the base image
+FROM openjdk:17-jdk-slim
+
+# Set the working directory in the container
+WORKDIR /app
+
+# Copy the built JAR file from the target directory to the container
+# Replace 'your-app.jar' with the actual name of your built JAR file
+COPY target/medici_user_hub.jar /app/medici_user_hub.jar
+
+# Expose the port that Spring Boot will run on
+EXPOSE 3005
+
+# Run the JAR file
+ENTRYPOINT ["java", "-jar", "/app/medici_user_hub.jar"]

@@ -1,51 +1,13 @@
 // src/App.js
 
-import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
-import { Button, Typography } from "@mui/material";
-import RegistrationForm from "./components/RegistrationForm";
-import LoginForm from "./components/LoginForm";
+import React, { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import AdminDashboard from "./components/AdminDashboard";
 import UserDashboard from "./components/UserDashboard";
+import EditUser from "./components/EditUser";
+import AuthContainer from "./components/AuthContainer";
 import BackgroundContainer from "./components/BackgroundContainer";
 import './App.css';
-
-function AuthContainer({ onAuth, showRegister, toggleForm }) {
-  return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <BackgroundContainer />
-      <div className="glassmorphic-container">
-        <Typography variant="h4" align="center" gutterBottom style={{ color: '#fff' }}>
-          {showRegister ? "Register" : "Login"}
-        </Typography>
-
-        {showRegister ? (
-          <RegistrationForm onAuth={onAuth} />
-        ) : (
-          <LoginForm onAuth={onAuth} />
-        )}
-
-        <Button
-          onClick={toggleForm}
-          variant="text"
-          fullWidth
-          sx={{
-            marginTop: 2,
-            color: '#fff',
-            backgroundColor: 'transparent',
-            transition: 'background-color 0.5s ease, color 0.3s ease',
-            '&:hover': {
-              backgroundColor: '#000',
-              color: '#fff',
-            },
-          }}
-        >
-          {showRegister ? "Already have an account? Login" : "New user? Register"}
-        </Button>
-      </div>
-    </div>
-  );
-}
 
 function AppWithRouter() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -63,6 +25,16 @@ function AppWithRouter() {
     setIsAuthenticated(false);
     setUserRole(null);
   };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      if (userRole === 'admin') {
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/user";
+      }
+    }
+  }, [isAuthenticated, userRole]);
 
   return (
     <Router>
@@ -85,7 +57,12 @@ function AppWithRouter() {
           path="/admin"
           element={
             isAuthenticated && userRole === 'admin' ? (
-              <AdminDashboard handleLogout={handleLogout} />
+              <>
+                <BackgroundContainer />
+                <div className="glassmorphic-container">
+                  <AdminDashboard onLogout={handleLogout} />
+                </div>
+              </>
             ) : (
               <Navigate to="/" />
             )
@@ -95,7 +72,27 @@ function AppWithRouter() {
           path="/user"
           element={
             isAuthenticated && userRole === 'user' ? (
-              <UserDashboard handleLogout={handleLogout} />
+              <>
+                <BackgroundContainer />
+                <div className="glassmorphic-container">
+                  <UserDashboard onLogout={handleLogout} />
+                </div>
+              </>
+            ) : (
+              <Navigate to="/" />
+            )
+          }
+        />
+        <Route
+          path="/edit-user/:userId"
+          element={
+            isAuthenticated && userRole === 'admin' ? (
+              <>
+                <BackgroundContainer />
+                <div className="glassmorphic-container">
+                  <EditUser />
+                </div>
+              </>
             ) : (
               <Navigate to="/" />
             )

@@ -21,6 +21,8 @@ public class User {
     private LocalDateTime createdAt;  // Timestamp for when the user was created
     private LocalDateTime updatedAt;  // Timestamp for the last update to the user's data
     private Set<Role> roles;  // Set of roles assigned to the user (e.g., USER, ADMIN)
+    private String securityQuestion; // Security question used for password reset
+    private String securityAnswerHash; // Security answer used for password reset
 
     // Constructor initializes creation and update timestamps
     public User() {
@@ -60,6 +62,16 @@ public class User {
         this.email = email;
     }
 
+    // Returns the user's security question
+    public String getSecurityQuestion() {
+        return securityQuestion;
+    }
+
+    // Gets the user's security question
+    public void setSecurityQuestion(String securityQuestion) {
+        this.securityQuestion = securityQuestion;
+    }
+
     // Returns the hashed password
     public String getPasswordHash() {
         return passwordHash;
@@ -68,6 +80,16 @@ public class User {
     // Sets the hashed password
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
+    }
+
+    // Returns the hashed security password
+    public String getSecurityAnswerHash() {
+        return securityAnswerHash;
+    }
+
+    // Sets the hashed security password
+    public void setSecurityAnswerHash(String securityAnswerHash) {
+        this.securityAnswerHash = securityAnswerHash;
     }
 
     // Returns the creation timestamp

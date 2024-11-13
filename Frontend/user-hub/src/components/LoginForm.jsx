@@ -6,14 +6,15 @@ import { useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { TextField } from '@mui/material';
-import { login } from '../slices/authSlice'; // Import the login thunk
+import { login } from '../slices/authSlice';
+import { fetchProfile } from '../slices/userSlice'; // Ensure profile data is fetched
 import './Shiny.css';
 
 const LoginForm = ({ onAuth }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, error } = useSelector((state) => state.auth);
-  const { profile } = useSelector((state) => state.user); // Assuming user profile is stored in user slice
+  const { isAuthenticated, token, error } = useSelector((state) => state.auth);
+  const { profile } = useSelector((state) => state.user);
 
   const formik = useFormik({
     initialValues: {
@@ -29,10 +30,18 @@ const LoginForm = ({ onAuth }) => {
     },
   });
 
+  // Fetch profile after login
+  useEffect(() => {
+    if (isAuthenticated && token && !profile) {
+      dispatch(fetchProfile()); // Fetch profile after login to retrieve user role
+    }
+  }, [isAuthenticated, token, profile, dispatch]);
+
+  // Redirect based on role when profile data is available
   useEffect(() => {
     if (isAuthenticated && profile) {
       const userRole = profile.role;
-      onAuth(userRole); // Call onAuth to handle redirection based on role
+      onAuth(userRole); // Pass role to `onAuth` for App state
       navigate(userRole === 'admin' ? '/admin' : '/user');
     }
   }, [isAuthenticated, profile, onAuth, navigate]);

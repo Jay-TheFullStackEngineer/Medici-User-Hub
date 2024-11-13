@@ -1,0 +1,35 @@
+version: '3.8'
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: medici_users_mongo_db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: medici
+      MONGO_INITDB_DATABASE: medic_user_db
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - medici_network
+    command: mongod --auth
+
+  redis:
+    image: redis:latest
+    container_name: medici_users_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - medici_network
+
+volumes:
+  mongodb_data:
+  redis_data:
+
+networks:
+  medici_network:
+    driver: bridge
